@@ -44,20 +44,22 @@ cp $(pwd)/scripts/* ~/.scripts/
 rm -f ~/c
 ln -sf /mnt/c ~/c
 rm -f ~/projects
-ln -sf /mnt/c/Projects ~/projects
+ln -sf ~/c/Projects ~/projects
 rm -f ~/downloads
-ln -sf /mnt/c/Users/jieverson/Downloads ~/downloads
+ln -sf ~/c/Users/$(whoami)/Downloads ~/downloads
 rm -f ~/pictures
-ln -sf /mnt/c/Users/jieverson/Pictures ~/pictures
+ln -sf ~/c/Users/$(whoami)/Pictures ~/pictures
 echo "✔ alias for windows folders"
 
-curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+# sudo apt-get install -y nodejscurl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
 sudo apt -qq install nodejs
 sudo apt -qq install npm
 sudo apt -qq install python-pip
 echo "✔ apt dev tools installed"
 
-sudo npm install -g bower gulp grunt yo less mdpdf
+#sudo npm uninstall -g bower gulp grunt yo
+sudo npm install -g --save-dev webpack parcel babel-cli less mdpdf
 echo "✔ npm -g dev tools installed"
 
 sudo apt -qq install caca-utils ranger cowsay fortune screenfetch lolcat figlet sl cmatrix
