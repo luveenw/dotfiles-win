@@ -7,7 +7,7 @@ dotfiles setup for zsh on Hyper for Windows 10. Basic Python, Node setup. Mostly
 Just run `install.sh` to install zsh (including oh-my-zsh and other important stuff) and symlink all dotfiles.
 
 ```
-$ git clone https://github.com/jieverson/dotfiles-win.git ~/.dotfiles
+$ git clone https://github.com/luveenw/dotfiles-win.git ~/.dotfiles
 $ cd ~/.dotfiles
 $ sudo ./install.sh
 ```
