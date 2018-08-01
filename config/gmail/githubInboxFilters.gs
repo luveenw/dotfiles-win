@@ -78,27 +78,27 @@ function processMessageThreads(dryRun) {
 function getLabelsFor(message) {
   var labels = {};
   var body = message.getRawContent();
-  var isActiveParticipant = bodyContains(body, "X-GitHub-Reason: author") || bodyContains(body, "X-GitHub-Reason: comment");
-  var isSubscribed = bodyContains(body, "X-GitHub-Reason: subscribed");
+  var isActiveParticipant = contains(body, "X-GitHub-Reason: author") || contains(body, "X-GitHub-Reason: comment");
+  var isSubscribed = contains(body, "X-GitHub-Reason: subscribed");
   
   if (isActiveParticipant || isSubscribed) {
     var labelName = isSubscribed ? SUBSCRIBED : PARTICIPATING;
     labels[labelName] = true;
-    if (bodyContains(body, "Merged #")) {
+    if (contains(body, "Merged #")) {
       labels[MERGED] = true;
     }
-    if (bodyContains(body, "Closed #")) {
+    if (contains(body, "Closed #")) {
       labels[CLOSED] = true;
     }
   }
 
-  if (bodyContains(body, "X-GitHub-Reason: mention")) {
+  if (contains(body, "X-GitHub-Reason: mention")) {
     labels[DEFAULT_MENTION_LABEL] = true;
   }
-  if (bodyContains(body, "X-GitHub-Reason: team_mention")) {
+  if (contains(body, "X-GitHub-Reason: team_mention")) {
     labels[TEAM_MENTION] = true;
   }
-  if (bodyContains(body, "X-GitHub-Reason: assign")) {
+  if (contains(body, "X-GitHub-Reason: assign")) {
     labels[ASSIGNED] = true;
   }
   
@@ -113,7 +113,7 @@ function createRequiredLabels(dryRun) {
   !dryRun && [ASSIGNED, CLOSED, GITHUB, MERGED, NOTIFICATION, PARTICIPATING, SUBSCRIBED, TEAM_MENTION, DEFAULT_MENTION_LABEL].forEach(function(label) { GmailApp.createLabel(label); });
 }
 
-function bodyContains(body, str) {
+function contains(body, str) {
   return (body.indexOf(str) > -1);
 }
 
