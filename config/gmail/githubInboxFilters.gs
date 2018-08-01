@@ -42,50 +42,67 @@ function processInbox(dryRun) {
 
 function processMessageThreads(dryRun) {
   var threads = GmailApp.getInboxThreads(0, 50);
+
   for (var i = 0; i < threads.length; i++) {
     var thread = threads[i];
-    console.log("Processing thread with first message subject [" + thread.getFirstMessageSubject() + "]");
     var messages = thread.getMessages();
+    var labels = {};
+
+    console.log("Processing thread with first message subject [" + thread.getFirstMessageSubject() + "]; contains " + thread.getMessageCount() + " messages.");
 
     if (messages) {
-      if (isFrom(messages, "github.com")) {
-        assignLabel(thread, GITHUB, dryRun);
-        if (isFrom(messages, "notifications@github.com")) {
-          assignLabel(thread, NOTIFICATION, dryRun);
+      if (isFrom(messages[0], "github.com")) {
+        labels[GITHUB] = true;
+        if (isFrom(messages[0], "notifications@github.com")) {
+          labels[NOTIFICATION] = true;
+
           for (var j = 0; j < messages.length; j++) {
-            var message = messages[j];
-            assignNotificationLabels(message, thread, dryRun);
+            for (var label in getLabelsFor(messages[j])) {
+              labels[label] = true;
+            }
           }
+          var labelNames = [];
+
+          for (var label in labels) {
+            labelNames.unshift(label);
+          }
+
+          console.log("The labels " + labelNames.join() + " will be assigned to this thread.");
+          labelNames.forEach(function(labelName) { assignLabel(thread, labelName, dryRun); });
         }
-        //thread.moveToArchive();
       }
     }
   }
 }
 
-function assignNotificationLabels(message, thread, dryRun) {
+function getLabelsFor(message) {
+  var labels = {};
   var body = message.getRawContent();
-  var isActiveParticipant = (bodyContains("X-GitHub-Reason: author")) || (bodyContains("X-GitHub-Reason: comment"));
-  var isSubscribed = (bodyContains("X-GitHub-Reason: subscribed"));
-
+  var isActiveParticipant = bodyContains(body, "X-GitHub-Reason: author") || bodyContains(body, "X-GitHub-Reason: comment");
+  var isSubscribed = bodyContains(body, "X-GitHub-Reason: subscribed");
+  
   if (isActiveParticipant || isSubscribed) {
-    assignLabel(thread, isSubscribed ? SUBSCRIBED : PARTICIPATING, dryRun);
-    if (bodyContains("Merged #")) {
-      assignLabel(thread, MERGED, dryRun);
+    var labelName = isSubscribed ? SUBSCRIBED : PARTICIPATING;
+    labels[labelName] = true;
+    if (bodyContains(body, "Merged #")) {
+      labels[MERGED] = true;
     }
-    if (bodyContains("Closed #")) {
-      assignLabel(thread, CLOSED, dryRun);
+    if (bodyContains(body, "Closed #")) {
+      labels[CLOSED] = true;
     }
   }
-  if (bodyContains("X-GitHub-Reason: mention")) {
-    assignLabel(thread, DEFAULT_MENTION_LABEL, dryRun);
+
+  if (bodyContains(body, "X-GitHub-Reason: mention")) {
+    labels[DEFAULT_MENTION_LABEL] = true;
   }
-  if (bodyContains("X-GitHub-Reason: team_mention")) {
-    assignLabel(thread, TEAM_MENTION, dryRun);
+  if (bodyContains(body, "X-GitHub-Reason: team_mention")) {
+    labels[TEAM_MENTION] = true;
   }
-  if (bodyContains("X-GitHub-Reason: assign")) {
-    assignLabel(thread, ASSIGNED, dryRun);
+  if (bodyContains(body, "X-GitHub-Reason: assign")) {
+    labels[ASSIGNED] = true;
   }
+  
+  return labels;
 }
 
 function printCurrentLabels() {
@@ -97,11 +114,11 @@ function createRequiredLabels(dryRun) {
 }
 
 function bodyContains(body, str) {
-  return body.indexOf(str) > -1;
+  return (body.indexOf(str) > -1);
 }
 
-function isFrom(messages, from) {
-  return (messages[0].getFrom()).indexOf(from) > -1;
+function isFrom(message, from) {
+  return message.getFrom().indexOf(from) > -1;
 }
 
 function assignLabel(thread, label, dryRun) {
